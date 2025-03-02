@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مؤقت الدراسة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        
+        /* الوضع النهاري (الافتراضي) */
+        :root {
+            --bg-color: #282c34;
+            --text-color: #ffffff;
+            --primary-color: #61dafb;
+            --secondary-bg: #20232a;
+            --hover-color: #21a1f1;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --card-background: #20232a;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        /* الوضع الليلي */
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --primary-color: #4fa3d1;
+            --secondary-bg: #2d2d2d;
+            --hover-color: #3d8ac7;
+            --warning-color: #d4a307;
+            --danger-color: #bd2130;
+            --success-color: #1e7e34;
+            --card-background: #2d2d2d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .timer-card {
+            background: var(--secondary-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 1.5rem 0;
+            text-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+            position: relative;
+        }
+
+        .elapsed-timer {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--success-color);
+            background: var(--secondary-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--success-color);
+            box-shadow: var(--shadow);
+        }
+
+        .progress {
+            height: 0.75rem;
+            background-color: #e2e8f0;
+            border-radius: 1rem;
+        }
+
+        .progress-bar {
+            background-color: var(--primary-color);
+            border-radius: 1rem;
+            transition: width 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            border: none;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border: none;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .task-done {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .delete-task-btn {
+            margin-right: auto;
+            color: #dc3545;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .calendar-card {
+            background: var(--card-background);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-day {
+            background: var(--card-background);
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            min-height: 90px;
+            transition: transform 0.2s;
+        }
+
+        .calendar-day:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow);
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--primary-color);
+            background-color: #eff6ff;
+        }
+
+        .study-hours {
+            font-size: 0.85em;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .accounts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            padding: 20px;
+        }
+
+        .account-card {
+            background: var(--secondary-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .account-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(45deg, var(--primary-color), var(--hover-color));
+        }
+
+        .account-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary-color);
+        }
+
+        .account-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .account-option {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .admin-option {
+            background: linear-gradient(45deg, var(--primary-color), var(--hover-color));
+            color: var(--bg-color);
+            transition: all 0.3s ease;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .admin-option:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .viewer-option {
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .viewer-option:hover {
+            background: var(--hover-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .password-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            display: none;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .user-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-background);
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-screen" id="loginScreen">
+        <div class="accounts-grid">
+            <div class="account-card">
+                <h3>بلال أمين</h3>
+                <div class="account-options">
+                    <button class="account-option admin-option" onclick="timer.login('bilal', 'admin')">
+                        <i class="fas fa-user"></i>
+                        دخول للحساب
+                    </button>
+                </div>
+            </div>
+            <div class="account-card">
+                <h3>تيم رضا</h3>
+                <div class="account-options">
+                    <button class="account-option admin-option" onclick="timer.login('tim', 'admin')">
+                        <i class="fas fa-user"></i>
+                        دخول للحساب
+                    </button>
+                </div>
+            </div>
+            <div class="account-card">
+                <h3>أسامة الحمود</h3>
+                <div class="account-options">
+                    <button class="account-option admin-option" onclick="timer.login('osama', 'admin')">
+                        <i class="fas fa-user"></i>
+                        دخول للحساب
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="password-modal" id="passwordModal">
+        <h4 class="mb-3" id="passwordModalTitle">إدخال كلمة المرور</h4>
+        <div class="mb-3">
+            <input type="password" class="form-control" id="passwordInput" placeholder="كلمة المرور">
+            <div class="text-danger mt-2" id="passwordError" style="display: none;">كلمة المرور غير صحيحة</div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" id="submitPassword">تأكيد</button>
+            <button class="btn btn-secondary flex-grow-1" id="cancelPassword">إلغاء</button>
+        </div>
+    </div>
+
+    <div class="user-info" id="userInfo" style="display: none;">
+        <span id="userName"></span>
+        <span id="userRole"></span>
+        <button class="logout-btn" onclick="timer.logout()">تسجيل خروج</button>
+    </div>
+
+    <div class="container" id="appContainer" style="display: none;">
+        <div class="timer-card">
+            <h2 class="text-center mb-4">مؤقت الدراسة</h2>
+            <div class="timer-display" id="timer">
+                00:00:00
+                <div class="elapsed-timer" id="elapsedTimer">00:00:00</div>
+            </div>
+            <div class="progress mb-3">
+                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">ساعات:</label>
+                    <input type="number" class="form-control" id="hoursInput" min="0" max="24" value="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">دقائق:</label>
+                    <input type="number" class="form-control" id="minutesInput" min="0" max="59" value="25">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">ثواني:</label>
+                    <input type="number" class="form-control" id="secondsInput" min="0" max="59" value="0">
+                </div>
+            </div>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-primary" id="startBtn">بدء</button>
+                <button class="btn btn-warning" id="pauseBtn" disabled>إيقاف مؤقت</button>
+                <button class="btn btn-danger" id="resetBtn">إعادة تعيين</button>
+            </div>
+        </div>
+
+        <div class="timer-card">
+            <h3 class="mb-4">المهام اليومية</h3>
+            <div class="mb-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="taskInput" placeholder="أضف مهمة جديدة">
+                    <button class="btn btn-success" id="addTaskBtn">إضافة</button>
+                </div>
+            </div>
+            <div id="tasksList"></div>
+        </div>
+
+        <div class="calendar-card">
+            <h3 class="mb-4">التقويم والإحصائيات</h3>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <script>
+        class StudyTimer {
+            constructor() {
+                this.STORAGE_KEYS = {
+                    CURRENT_USER: 'studyTimer_currentUser',
+                    CURRENT_ROLE: 'studyTimer_currentRole',
+                    USER_DATA: 'studyTimer_userData_'
+                };
+
+                this.users = {
+                    bilal: { name: 'بلال أمين' },
+                    tim: { name: 'تيم رضا' },
+                    osama: { name: 'أسامة الحمود' }
+                };
+
+                this.initializeElements();
+                this.setupEventListeners();
+                this.checkLoginStatus();
+            }
+
+            login(userId, role) {
+                if (!this.users[userId]) return;
+                // تسجيل دخول مباشر دون الحاجة لكلمة مرور
+                this.completeLogin(userId, role);
+            }
+
+            completeLogin(userId, role) {
+                this.currentUser = userId;
+                this.currentRole = role;
+                this.userName.textContent = this.users[userId].name;
+                this.userRole.textContent = role === 'admin' ? 'مدير' : 'مشاهد';
+                
+                this.loginScreen.style.display = 'none';
+                this.appContainer.style.display = 'block';
+                this.userInfo.style.display = 'flex';
+
+                this.loadSavedData();
+                this.applyUserPermissions(role);
+                this.saveLoginState();
+            }
+
+            initializeElements() {
+                // عناصر المؤقت
+                this.hoursInput = document.getElementById('hoursInput');
+                this.minutesInput = document.getElementById('minutesInput');
+                this.secondsInput = document.getElementById('secondsInput');
+                this.timerDisplay = document.getElementById('timer');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.progressBar = document.querySelector('.progress-bar');
+                this.elapsedTimer = document.getElementById('elapsedTimer');
+
+                // عناصر المهام
+                this.taskInput = document.getElementById('taskInput');
+                this.addTaskBtn = document.getElementById('addTaskBtn');
+                this.tasksList = document.getElementById('tasksList');
+                this.calendar = document.getElementById('calendar');
+
+                // عناصر تسجيل الدخول
+                this.loginScreen = document.getElementById('loginScreen');
+                this.appContainer = document.getElementById('appContainer');
+                this.userInfo = document.getElementById('userInfo');
+                this.userName = document.getElementById('userName');
+                this.userRole = document.getElementById('userRole');
+
+                // تهيئة المتغيرات
+                this.totalSeconds = 0;
+                this.remainingSeconds = 0;
+                this.elapsedSeconds = 0;
+                this.isRunning = false;
+                this.interval = null;
+                this.startTime = null;
+                this.tasks = [];
+                this.stats = { daily: {} };
+                this.currentUser = null;
+                this.currentRole = null;
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startTimer());
+                this.pauseBtn.addEventListener('click', () => this.pauseTimer());
+                this.resetBtn.addEventListener('click', () => this.resetTimer());
+                this.addTaskBtn.addEventListener('click', () => this.addTask());
+                this.taskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTask();
+                });
+            }
+
+            applyUserPermissions(role) {
+                const isAdmin = role === 'admin';
+                const viewerElements = ['hoursInput', 'minutesInput', 'secondsInput'];
+                const adminElements = ['startBtn', 'pauseBtn', 'resetBtn', 'addTaskBtn', 'taskInput'];
+
+                // تطبيق الصلاحيات على عناصر المشاهد
+                viewerElements.forEach(id => {
+                    if (this[id]) {
+                        this[id].disabled = true;
+                        this[id].style.display = 'block';
+                    }
+                });
+
+                // تطبيق الصلاحيات على عناصر المدير
+                adminElements.forEach(id => {
+                    if (this[id]) {
+                        this[id].disabled = !isAdmin;
+                        this[id].style.display = isAdmin ? 'block' : 'none';
+                    }
+                });
+
+                // تحديث عناصر المهام
+                document.querySelectorAll('.delete-task-btn').forEach(btn => {
+                    btn.style.display = isAdmin ? 'block' : 'none';
+                });
+                
+                document.querySelectorAll('.form-check-input').forEach(checkbox => {
+                    checkbox.disabled = !isAdmin;
+                });
+            }
+
+            logout() {
+                if (this.currentUser) {
+                    // حفظ الحالة قبل تسجيل الخروج
+                    this.saveState();
+                }
+                
+                // تنظيف المتغيرات دون إعادة تعيين المؤقت
+                this.currentUser = null;
+                this.currentRole = null;
+                this.loginScreen.style.display = 'flex';
+                this.appContainer.style.display = 'none';
+                this.userInfo.style.display = 'none';
+                
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('currentRole');
+                
+                // لا نقوم بإعادة تعيين المؤقت عند تسجيل الخروج
+                this.tasks = [];
+                this.stats = { daily: {} };
+                this.renderTasks();
+                this.renderCalendar();
+            }
+
+            saveLoginState() {
+                localStorage.setItem('currentUser', this.currentUser);
+                localStorage.setItem('currentRole', this.currentRole);
+            }
+
+            checkLoginStatus() {
+                const savedUser = localStorage.getItem('currentUser');
+                const savedRole = localStorage.getItem('currentRole');
+                if (savedUser && savedRole) {
+                    this.completeLogin(savedUser, savedRole);
+                }
+            }
+
+            startTimer() {
+                if (!this.isRunning) {
+                    if (this.remainingSeconds === 0) {
+                        const hours = parseInt(this.hoursInput.value) || 0;
+                        const minutes = parseInt(this.minutesInput.value) || 0;
+                        const seconds = parseInt(this.secondsInput.value) || 0;
+                        
+                        this.totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+                        if (this.totalSeconds === 0) {
+                            alert('الرجاء إدخال وقت أكبر من صفر');
+                            return;
+                        }
+                        this.remainingSeconds = this.totalSeconds;
+                        this.elapsedSeconds = 0;
+                    }
+
+                    this.startTime = Date.now() - ((this.totalSeconds - this.remainingSeconds) * 1000);
+                    this.isRunning = true;
+                    this.interval = setInterval(() => this.tick(), 1000);
+                    this.startBtn.disabled = true;
+                    this.pauseBtn.disabled = false;
+                    this.disableTimeInputs(true);
+                    this.saveState();
+                }
+            }
+
+            pauseTimer() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    clearInterval(this.interval);
+                    this.startBtn.disabled = false;
+                    this.pauseBtn.disabled = true;
+                    this.saveState();
+                }
+            }
+
+            resetTimer() {
+                this.isRunning = false;
+                clearInterval(this.interval);
+                this.remainingSeconds = 0;
+                this.totalSeconds = 0;
+                this.elapsedSeconds = 0;
+                this.startTime = null;
+                this.startBtn.disabled = false;
+                this.pauseBtn.disabled = true;
+                this.disableTimeInputs(false);
+                this.updateDisplay();
+                this.updateElapsedDisplay();
+                this.saveState();
+            }
+
+            tick() {
+                if (this.isRunning && this.startTime) {
+                    const now = Date.now();
+                    const elapsedSeconds = Math.floor((now - this.startTime) / 1000);
+                    this.remainingSeconds = Math.max(0, this.totalSeconds - elapsedSeconds);
+                    this.elapsedSeconds = this.totalSeconds - this.remainingSeconds;
+
+                    if (this.remainingSeconds <= 0) {
+                        this.updateStats(this.totalSeconds);
+                        if (confirm('انتهى الوقت! هل تريد تشغيل مؤقت جديد بنفس المدة؟')) {
+                            this.remainingSeconds = this.totalSeconds;
+                            this.startTime = Date.now();
+                            this.elapsedSeconds = 0;
+                            this.saveState();
+                        } else {
+                            this.resetTimer();
+                        }
+                    } else {
+                        this.updateDisplay();
+                        this.updateElapsedDisplay();
+                        this.saveState();
+                    }
+                }
+            }
+
+            updateDisplay() {
+                const hours = Math.floor(this.remainingSeconds / 3600);
+                const minutes = Math.floor((this.remainingSeconds % 3600) / 60);
+                const seconds = this.remainingSeconds % 60;
+
+                this.timerDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                const progress = ((this.totalSeconds - this.remainingSeconds) / this.totalSeconds) * 100;
+                this.progressBar.style.width = `${this.totalSeconds ? progress : 0}%`;
+            }
+
+            updateElapsedDisplay() {
+                const hours = Math.floor(this.elapsedSeconds / 3600);
+                const minutes = Math.floor((this.elapsedSeconds % 3600) / 60);
+                const seconds = this.elapsedSeconds % 60;
+                this.elapsedTimer.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+
+            disableTimeInputs(disabled) {
+                this.hoursInput.disabled = disabled;
+                this.minutesInput.disabled = disabled;
+                this.secondsInput.disabled = disabled;
+            }
+
+            addTask() {
+                const taskText = this.taskInput.value.trim();
+                if (taskText) {
+                    this.tasks.push({ text: taskText, done: false });
+                    this.taskInput.value = '';
+                    this.renderTasks();
+                    this.saveState();
+                }
+            }
+
+            toggleTask(index) {
+                this.tasks[index].done = !this.tasks[index].done;
+                this.renderTasks();
+                this.saveState();
+            }
+
+            deleteTask(index) {
+                this.tasks.splice(index, 1);
+                this.renderTasks();
+                this.saveState();
+            }
+
+            renderTasks() {
+                this.tasksList.innerHTML = this.tasks.map((task, index) => `
+                    <div class="task-item">
+                        <input type="checkbox" class="form-check-input me-2" 
+                            ${task.done ? 'checked' : ''} 
+                            ${this.currentRole === 'viewer' ? 'disabled' : ''}
+                            onchange="timer.toggleTask(${index})">
+                        <span class="${task.done ? 'task-done' : ''}">${task.text}</span>
+                        ${this.currentRole === 'admin' ? 
+                            `<button class="delete-task-btn" onclick="timer.deleteTask(${index})">×</button>` : 
+                            ''}
+                    </div>
+                `).join('');
+            }
+
+            updateStats(seconds) {
+                const today = new Date().toISOString().split('T')[0];
+                this.stats.daily[today] = (this.stats.daily[today] || 0) + seconds;
+                this.saveState();
+                this.renderCalendar();
+            }
+
+            formatTime(totalSeconds) {
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                if (hours > 0) {
+                    return `${hours} ساعة ${minutes} دقيقة`;
+                } else {
+                    return `${minutes} دقيقة`;
+                }
+            }
+
+            renderCalendar() {
+                const today = new Date();
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                
+                let calendarHTML = '<div class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">';
+                
+                // أيام الأسبوع
+                const weekDays = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                weekDays.forEach(day => {
+                    calendarHTML += `<div class="text-center fw-bold p-2">${day}</div>`;
+                });
+
+                // الأيام الفارغة في بداية الشهر
+                for (let i = 0; i < firstDay.getDay(); i++) {
+                    calendarHTML += '<div></div>';
+                }
+
+                // أيام الشهر
+                for (let day = 1; day <= lastDay.getDate(); day++) {
+                    const date = new Date(currentYear, currentMonth, day);
+                    const dateString = date.toISOString().split('T')[0];
+                    const isToday = day === today.getDate();
+                    const studyTime = this.stats.daily[dateString] || 0;
+
+                    calendarHTML += `
+                        <div class="calendar-day ${isToday ? 'today' : ''}">
+                            <div>${day}</div>
+                            <div class="study-hours">${this.formatTime(studyTime)}</div>
+                        </div>
+                    `;
+                }
+
+                calendarHTML += '</div>';
+                this.calendar.innerHTML = calendarHTML;
+            }
+
+            saveState() {
+                if (!this.currentUser) return;
+
+                const state = {
+                    totalSeconds: this.totalSeconds,
+                    remainingSeconds: this.remainingSeconds,
+                    elapsedSeconds: this.elapsedSeconds,
+                    isRunning: this.isRunning,
+                    startTime: this.startTime,
+                    tasks: this.tasks,
+                    stats: this.stats,
+                    lastSaveTime: Date.now()
+                };
+
+                try {
+                    localStorage.setItem(`userData_${this.currentUser}`, JSON.stringify(state));
+                } catch (error) {
+                    console.error('خطأ في حفظ البيانات:', error);
+                }
+            }
+
+            async loadSavedData() {
+                if (this.currentUser) {
+                    try {
+                        const savedState = JSON.parse(localStorage.getItem(`userData_${this.currentUser}`));
+                        if (savedState) {
+                            this.totalSeconds = savedState.totalSeconds || 0;
+                            this.remainingSeconds = savedState.remainingSeconds || 0;
+                            this.elapsedSeconds = savedState.elapsedSeconds || 0;
+                            
+                            if (savedState.isRunning && savedState.startTime) {
+                                const elapsedMilliseconds = Date.now() - savedState.lastSaveTime;
+                                const additionalSeconds = Math.floor(elapsedMilliseconds / 1000);
+                                this.remainingSeconds = Math.max(0, savedState.remainingSeconds - additionalSeconds);
+                                this.elapsedSeconds = this.totalSeconds - this.remainingSeconds;
+                                
+                                if (this.remainingSeconds > 0) {
+                                    this.startTime = Date.now() - ((this.totalSeconds - this.remainingSeconds) * 1000);
+                                    this.isRunning = true;
+                                    this.interval = setInterval(() => this.tick(), 1000);
+                                    this.startBtn.disabled = true;
+                                    this.pauseBtn.disabled = false;
+                                    this.disableTimeInputs(true);
+                                } else {
+                                    this.resetTimer();
+                                }
+                            }
+
+                            // استعادة المهام والإحصائيات
+                            this.tasks = savedState.tasks || [];
+                            this.stats = savedState.stats || { daily: {} };
+                            
+                            this.renderTasks();
+                            this.renderCalendar();
+                            this.updateDisplay();
+                            this.updateElapsedDisplay();
+                            this.applyUserPermissions(this.currentRole);
+                        }
+                    } catch (error) {
+                        console.error('Error loading saved data:', error);
+                        this.resetTimer();
+                    }
+                }
+            }
+        }
+
+        const timer = new StudyTimer();
+    </script>
+</body>
+</html>
